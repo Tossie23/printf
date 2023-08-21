@@ -1,69 +1,74 @@
+#include <unistd.h>
+#include <stdarg.h>
 #include "main.h"
-#include <stdio.h>
-#include <stddef.h>
 
 /**
- * _printf - A simplified version of printf.
- * @format: The format string.
- * @...: The list of arguments.
+ * _strlen - Computes the size of a string
+ * @s: The string to compute the size of
  *
- * Return: The number of characters printed (excluding null byte).
+ * Return: The size of the string
+ */
+int _strlen(char *s)
+{
+	int i = 0;
+
+	while (s[i])
+		i++;
+	return (i);
+}
+
+/**
+ * print_char_string_spec - Prints a character, string or percent sign
+ * @c: The conversion specifier
+ * @args: The argument list
+ */
+void print_char_string_spec(char c, va_list args)
+{
+	char *str;
+	char ch;
+
+	switch (c)
+	{
+		case 'c':
+			ch = (char) va_arg(args, int);
+			write(1, &ch, 1);
+			break;
+		case 's':
+			str = va_arg(args, char *);
+			write(1, str, _strlen(str));
+			break;
+		case '%':
+			write(1, "%", 1);
+			break;
+	}
+}
+
+/**
+ * _printf - Our custom printf function
+ * @format: The format string
+ *
+ * Return: 0 (Success)
  */
 int _printf(const char *format, ...)
 {
 	va_list args;
-	int i = 0, count = 0;
+	int i = 0;
 
 	va_start(args, format);
 
-	while (format && format[i])
+	while (format[i])
 	{
-		if (format[i] != '%')
+		if (format[i] == '%')
 		{
-			putchar(format[i]);
-			count++;
-		}
-		else if (format[i] == '%' && format[i + 1] == '%')
-		{
-			putchar('%');
-			count++;
-			i++; /* Skip the second '%' */
-		}
-		else if (format[i] == '%' && format[i + 1] == 'c')
-		{
-			putchar(va_arg(args, int));
-			count++;
-			i++; /* Skip 'c' */
-		}
-		else if (format[i] == '%' && format[i + 1] == 's')
-		{
-			char *str = va_arg(args, char *);
-			if (str != NULL)
-			{
-				while (*str)
-				{
-					putchar(*str);
-					count++;
-					str++;
-				}
-			}
-			else
-			{
-				printf("(null)");
-				count += 6; /* "(null)" has 6 characters */
-			}
-			i++; /* Skip 's' */
+			i++;
+			print_char_string_spec(format[i], args);
 		}
 		else
-		{
-			putchar(format[i]); /* Print the '%' character */
-			count++;
-		}
-
+			write(1, &format[i], 1);
 		i++;
 	}
 
 	va_end(args);
 
-	return (count);
+	return (0);
 }
